@@ -10,14 +10,15 @@ test.describe('Front-end tests', () => {
     // Include the rest of the code...
 
   });
-});
+});9
+
 
 test.describe('Backend tests', () => {
   test('Create a client', async ({ request }) => {
     const response = await request.post('http://localhost:3000/api/login', {
       data:{
-        "username": `${process.env.TEST_USERNAME}´,
-        "password": ´${process.env.TEST_PASSWORD}`
+        "username": `${process.env.TEST_USERNAME}`,
+        "password": `${process.env.TEST_PASSWORD}`
       }
     });
     expect (response.ok()).toBeTruthy();
