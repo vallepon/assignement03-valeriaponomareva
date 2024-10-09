@@ -39,19 +39,97 @@ test.describe('Front-end tests', () => {
       await expect(page.getByRole('heading', { name: 'Lena Handen'})).toBeVisible();
     });
 
-test.describe('Backend tests', () => {
-  test('Create a client', async ({ request }) => {
-    const response = await request.post('http://localhost:3000/api/login', {
-      data:{
-        "username": `${process.env.TEST_USERNAME}`,
-        "password": `${process.env.TEST_PASSWORD}`
-      }      
+    test.describe('Backend tests', () => {
+      test('Create a room', async ({ request }) => {
+        // Logga in och hämta token
+        const loginResponse = await request.post('http://localhost:3000/api/login', {
+          data: {
+            "username": `${process.env.TEST_USERNAME}`,
+            "password": `${process.env.TEST_PASSWORD}`
+          }
+        });
+        expect(loginResponse.ok()).toBeTruthy();
+    
+        // Extrahera token från svaret
+        const jsonResponse = await loginResponse.json();
+        const accessToken = jsonResponse.token;
+        const username = process.env.TEST_USERNAME;
+        // Skapa ett nytt rum med token i headers
+        const createRoomResponse = await request.post('http://localhost:3000/api/room/new', {
+          data: {
+            number: 1,
+            floor: 1,
+            price:150,
+            available: true,
+            features:'sea view',
+            category:'single'
+          
+          },
+          headers: {
+            'x-user-auth': JSON.stringify({
+              username: username,
+              token: accessToken
+            }),
+            'Content-Type': 'application/json'
+          }
+        });
+    
+        expect(createRoomResponse.ok()).toBeTruthy();
+        const responseBody = await createRoomResponse.json();
+      });
     });
-    expect (response.ok()).toBeTruthy();    
-    // Include the rest of the code...
-  });  
-  });  
-});
 
+
+  // Hämta access-token och gör en DELETE-begäran för att ta bort en klient
+  test('Delete a room', async ({ request }) => {
+    // Logga in för att få access-token
+    const loginResponse = await request.post('http://localhost:3000/api/login', {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
+        username: process.env.TEST_USERNAME,
+        password: process.env.TEST_PASSWORD
+      }
+    });
+    
+    expect(loginResponse.ok()).toBeTruthy();
+    const jsonResponse = await loginResponse.json();
+    const accessToken = jsonResponse.token;
+    const username = process.env.TEST_USERNAME;
+
+    // Ange id för den klient som ska raderas
+    const clientIdToDelete = 2; // Ändra detta till ett giltigt klient-ID
+    
+    // Gör DELETE-begäran
+    const deleteResponse = await request.delete('http://localhost:3000/api/room/2', {
+      headers: {
+        'x-user-auth': JSON.stringify({
+          username: username,
+          token: accessToken
+        }),
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    expect(deleteResponse.ok()).toBeTruthy();
+    expect(deleteResponse.status()).toBe(200); // Kontrollera att statusen är 200 eller den status du förväntar dig vid framgång
+    
+    // Validera att klienten verkligen har tagits bort genom att försöka hämta klienten igen
+    const checkResponse = await request.get('http://localhost:3000/api/room/2', {
+      headers: {
+        'x-user-auth': JSON.stringify({
+          username: username,
+          token: accessToken
+        }),
+        'Content-Type': 'application/json'
+      }
+    });
+
+    expect(checkResponse.status()).toBe(401); // Förvänta dig 404 om klienten har raderats
+  });
+  
+  // Ditt tidigare GET-test kan fortsätta här...
+});
 
 
