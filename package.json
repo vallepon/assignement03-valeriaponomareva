@@ -1,8 +1,11 @@
 {
-  "name": "assignement03-valeriaponomareva",
+  "name": "assignment03-valeriaponomareva",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {},
+ "scripts": {
+    "run-tests": "npx playwright test",
+    "ui-mode": "npx playwright test --ui"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
